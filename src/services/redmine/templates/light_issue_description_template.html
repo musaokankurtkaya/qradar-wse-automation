@@ -1,0 +1,151 @@
+<table style="
+        background: #fff;
+        line-height: 1.5;
+        width: 100%;
+    ">
+    <thead style="background: #f8f9f9;">
+        <th colspan="2" style="padding: 12px; text-align: center; border: none;">
+            <a href="https://github.com/musaokankurtkaya" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/209168101" alt="logo" width="120" />
+            </a>
+        </th>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Date
+            </td>
+            <td style="border: none;">{{ date }}</td>
+        </tr>
+        <tr>
+            <td style="
+                color: #8937de;
+                padding: 12px;
+                font-weight: bold;
+                border: none;
+            ">
+                Created By
+            <td style="border: none;">{{ created_by }}</td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Subject
+            </td>
+            <td style="border: none;">{{ subject }}</td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Status
+            </td>
+            <td style="border: none;">{{ status }}</td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Priority
+            </td>
+            <td style="border: none;">{{ priority }}</td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                    white-space: nowrap;
+                ">
+                Event Id
+            </td>
+            <td style="border: none;">{{ event_id }}</td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                    white-space: nowrap;
+                ">
+                Event Description
+            </td>
+            <td style="border: none;">
+                {{ event_description }}
+            </td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Events
+            </td>
+            <td style="border: none;">
+                <ul>
+                    {{ events }}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td style="
+                    color: #8937de;
+                    padding: 12px;
+                    font-weight: bold;
+                    border: none;
+                ">
+                Event Log
+            </td>
+            <td style="border: none;">
+                <span style="
+                        display: inline-block;
+                        border: 1px solid #edeff2;
+                        background: #f7f9f9;
+                        border-radius: 4px;
+                        padding: 12px;
+                        max-width: 900px;
+                        overflow: auto;
+                        box-sizing: border-box;
+                    ">
+                    {{ event_log }}
+                </span>
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="2" style="border: none; text-align: center;">
+                <a href="https://<redmine-url>/issues/{{ issue_id }}" style="
+                        display: inline-block;
+                        text-decoration: none;
+                        color: #edeff2;
+                        background: #8937de;
+                        margin: 12px;
+                        padding: 12px;
+                        border-radius: 4px;
+                    ">
+                    Show In Redmine
+                </a>
+            </td>
+        </tr>
+    </tfoot>
+</table>
