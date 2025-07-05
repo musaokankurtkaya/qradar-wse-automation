@@ -11,7 +11,7 @@ PROJECT_FOLDER_PATH: Path = ROOT_FOLDER_PATH / "src"
 
 CONFIG_FOLDER_PATH: Path = PROJECT_FOLDER_PATH / "config"
 
-ENV_FOLDER_PATH: Path = CONFIG_FOLDER_PATH / ".env" or ".env.example"
+ENV_FOLDER_PATH: Path = CONFIG_FOLDER_PATH / ".env"
 
 DATA_FOLDER_PATH: Path = PROJECT_FOLDER_PATH / "data"
 
@@ -47,7 +47,7 @@ def update_config_key(key: str, value: str) -> None:
     )
 
 
-def load_qradar_config(config: dict[str, str | None]) -> dict[str, str] | None:
+def load_qradar_config(config: dict[str, str | None]) -> dict[str, str | None]:
     """Load qradar configuration with the given config parameter.
 
     Parameters
@@ -57,13 +57,13 @@ def load_qradar_config(config: dict[str, str | None]) -> dict[str, str] | None:
 
     Returns
     -------
-    dict[str, str] | None
-        qradar configuration settings, if all the expected parameters are found. Otherwise, None.
+    dict[str, str | None]
+        qradar configuration settings, if all the expected parameters are found. Otherwise, raises ValueError.
 
     Raises
     ------
     ValueError
-        - If QRADAR_URL, QRADAR_USERNAME, QRADAR_PASSWORD not found in .env file.
+        - If QRADAR_URL, QRADAR_USERNAME, QRADAR_PASSWORD, QRADAR_EVENT_IDS_QUERY not found in .env file.
     """
 
     qradar_config: dict[str, str | None] = {
@@ -74,6 +74,7 @@ def load_qradar_config(config: dict[str, str | None]) -> dict[str, str] | None:
         "QRADAR_URL",
         "QRADAR_USERNAME",
         "QRADAR_PASSWORD",
+        "QRADAR_EVENT_IDS_QUERY",
     ]
     missing_config_keys: list[str] = [
         k for k in required_config_keys if not config.get(k)
@@ -85,7 +86,7 @@ def load_qradar_config(config: dict[str, str | None]) -> dict[str, str] | None:
     return qradar_config
 
 
-def load_redmine_config(config: dict[str, str | None]) -> dict[str, str] | None:
+def load_redmine_config(config: dict[str, str | None]) -> dict[str, str | None]:
     """Load redmine configuration with the given config parameter.
 
     Parameters
@@ -95,8 +96,8 @@ def load_redmine_config(config: dict[str, str | None]) -> dict[str, str] | None:
 
     Returns
     -------
-    dict[str, str] | None
-        Redmine configuration settings, if all the expected parameters are found. Otherwise, None.
+    dict[str, str | None]
+        Redmine configuration settings, if all the expected parameters are found. Otherwise, raises ValueError.
 
     Raises
     ------
@@ -121,7 +122,7 @@ def load_redmine_config(config: dict[str, str | None]) -> dict[str, str] | None:
 
 def load_windows_security_events(
     file_name: str = "windows_security_events.json",
-) -> list[dict[str, Any]] | None:
+) -> list[dict[str, Any]]:
     """Load windows security events from data/ folder.
 
     Parameters
@@ -131,8 +132,8 @@ def load_windows_security_events(
 
     Returns
     -------
-    list[dict[str, Any]] | None
-        List of windows security events, if the file exists and not empty. Otherwise, None.
+    list[dict[str, Any]]
+        List of windows security events, if the file exists and not empty. Otherwise, raises exception.
 
     Raises
     ------

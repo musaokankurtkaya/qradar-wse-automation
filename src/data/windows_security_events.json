@@ -40,6 +40,11 @@
     "event_text": "<li>User <b>{dst_user}</b> was added to the group <b>{group_name}</b> by <b>{src_user}</b>.</li>",
     "events": [],
     "event_log": "",
+    "included_groups": [
+      "Domain Admins",
+      "Administrators",
+      "Enterprise Admins"
+    ],
     "excluded_src_users": [],
     "excluded_dst_users": [],
     "excluded_groups": []
@@ -65,6 +70,10 @@
     "event_text": "<li>User account <b>{dst_user}</b> was enabled by <b>{src_user}</b>.</li>",
     "events": [],
     "event_log": "",
+    "included_dst_users": [
+      "admin",
+      "administrator"
+    ],
     "excluded_src_users": [],
     "excluded_dst_users": []
   },
@@ -77,6 +86,10 @@
     "event_text": "<li>User account <b>{dst_user}</b> was created by <b>{src_user}</b>.</li>",
     "events": [],
     "event_log": "",
+    "included_src_users": [
+      "admin",
+      "administrator"
+    ],
     "excluded_src_users": [],
     "excluded_dst_users": []
   }

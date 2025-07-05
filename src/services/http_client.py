@@ -71,7 +71,7 @@ class HttpClient:
             return self.session.request(
                 method=method,
                 url=full_url,
-                timeout=120,
+                timeout=30,
                 **request_kwargs,
             )
         except RequestException as e:

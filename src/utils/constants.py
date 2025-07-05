@@ -1,12 +1,6 @@
-from src.config.config import (
-    Path,
-    load_config,
-    ROOT_FOLDER_PATH,
-    PROJECT_FOLDER_PATH,
-    ENV_FOLDER_PATH,
-    DATA_FOLDER_PATH,
-)
+from src.config.config import Path, load_config, ROOT_FOLDER_PATH
 from src.services.redmine.types import CustomProject
+
 
 LOG_FOLDER_PATH: Path = ROOT_FOLDER_PATH / "logs"
 
@@ -17,8 +11,6 @@ DEFAULT_ENV: str = "dev"
 ENV: str = CONFIG.get("ENV", DEFAULT_ENV)
 
 IS_PROD: bool = ENV == "prod"
-
-MAX_QUERY_INTERVAL: int = 1440  # 1 day in minutes
 
 TEAMS_WORKFLOW_CONFIG: dict[str, str | None] = {
     "url": CONFIG.get("TEAMS_WORKFLOW_URL"),

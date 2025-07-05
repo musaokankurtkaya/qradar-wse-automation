@@ -245,10 +245,10 @@ class Redmine(redminelib.Redmine):
                 for pe in pe_events
                 if pe
                 not in "".join(
-                    map(
-                        lambda note: note.notes if note.notes is not None else "",
-                        list(wse_issue.journals),
-                    )
+                    [
+                        journal.notes if journal.notes else ""
+                        for journal in wse_issue.journals
+                    ]
                 )
             ]
             if not is_pe_in_notes:

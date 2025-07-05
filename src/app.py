@@ -6,19 +6,17 @@ from src.config.config import (
 )
 from src.services.qradar.qradar import QRadar, PostArielSearchResultItem, Any
 from src.services.redmine.redmine import Redmine, User, log_message
-from src.utils.constants import CONFIG, MAX_QUERY_INTERVAL
+from src.utils.constants import CONFIG
 
 
 def main() -> None:
     # read windows_security_events.json from data/ folder to match with the qradar's wse events
-    windows_security_events: list[dict[str, Any]] | None = (
-        load_windows_security_events()
-    )
+    windows_security_events: list[dict[str, Any]] = load_windows_security_events()
     if not windows_security_events:
         return
 
     # load qradar's config from CONFIG to use in qradar's instance
-    qradar_config: dict[str, str] | None = load_qradar_config(config=CONFIG)
+    qradar_config: dict[str, str | None] = load_qradar_config(config=CONFIG)
     if not qradar_config:
         return
 
@@ -29,33 +27,18 @@ def main() -> None:
         password=qradar_config["QRADAR_PASSWORD"],
     )
 
-    # get query_interval & limit from qradar_config to use in the post ariel search
+    # get query_interval from qradar_config to use in the AQL query.
+    query_interval_key: str = "QRADAR_QUERY_INTERVAL"
     default_interval: int = 15
-    query_interval: int = int(
-        qradar_config.get("QRADAR_QUERY_INTERVAL", default_interval)
-    )
-    default_limit: str = "9999"
-    limit: str = qradar_config.get("QRADAR_QUERY_LIMIT", default_limit)
+    query_interval: int = int(qradar_config.get(query_interval_key, default_interval))
 
-    # get all event ids from the windows_security_events and join them with OR operator to use in the query
-    event_ids: str = " OR ".join(
-        [f"\"Event ID\"={wse['event_id']}" for wse in windows_security_events]
-    )
-
-    # create sql query based on the windows_security_events to search
-    sql_query: tuple[str, ...] = (
-        "select \"Event ID\" AS 'event_id', username as 'src_user', \"Target Username\" as 'dst_user', ",
-        "\"Group Name\" as 'group_name', utf8(payload) as 'log'",
-        "from events",
-        f"where LOGSOURCETYPENAME(devicetype)='Microsoft Windows Security Event Log' and ({event_ids}) LIMIT {limit} LAST {query_interval} MINUTES",
-    )
-    # join the sql query to use in the post ariel search
-    str_sql_query: str = " ".join(sql_query)
+    # get all event ids from the windows_security_events and join them with a comma to use in the AQL query
+    event_ids: str = ", ".join([wse["event_id"] for wse in windows_security_events])
+    aql_query: str = qradar_config["QRADAR_EVENT_IDS_QUERY"]
+    aql_query = aql_query.replace("{event_ids}", event_ids)
 
     # create post search to get results
-    search_id: str | None = qradar.post_create_search_by_sql_query(
-        sql_query=str_sql_query
-    )
+    search_id: str | None = qradar.post_create_search_by_aql_query(aql_query=aql_query)
     if not search_id:
         log_message(mode="error", msg="search id not found")
         return
@@ -86,15 +69,16 @@ def main() -> None:
     if not parsed_events:
         # no wse events found, add 15 minutes to the query_interval to search in the next run
         query_interval += default_interval
-        # check if the query_interval is less than 1 day (1440 minutes), if not, set it to default_interval
-        if query_interval < MAX_QUERY_INTERVAL:
-            update_config_key(key="QRADAR_QUERY_INTERVAL", value=str(query_interval))
+        # check if the query_interval is less than 1 day, if not, set it to default_interval
+        max_query_interval: int = 1440  # 1 day in minutes
+        if query_interval < max_query_interval:
+            update_config_key(key=query_interval_key, value=str(query_interval))
             log_message(
                 mode="warning",
-                msg=f"no any windows security events found in the last ⊱ {query_interval} ⊰ minutes",
+                msg=f"no any windows security events found in the last ⊱ {query_interval - default_interval} ⊰ minutes",
             )
         else:
-            update_config_key(key="QRADAR_QUERY_INTERVAL", value=str(default_interval))
+            update_config_key(key=query_interval_key, value=str(default_interval))
             log_message(
                 mode="warning",
                 msg=f"no windows security events were found for 1 day, query_interval is set to {default_interval} minutes",
@@ -102,10 +86,10 @@ def main() -> None:
         return
 
     # wse events found, reset the QRADAR_QUERY_INTERVAL to the default_interval
-    update_config_key(key="QRADAR_QUERY_INTERVAL", value=str(default_interval))
+    update_config_key(key=query_interval_key, value=str(default_interval))
 
     # load redmine config from CONFIG to use in the redmine instance
-    redmine_config: dict[str, str] | None = load_redmine_config(config=CONFIG)
+    redmine_config: dict[str, str | None] = load_redmine_config(config=CONFIG)
     if not redmine_config:
         return
 

@@ -21,7 +21,7 @@ class QRadar:
 
     Methods
     -------
-    - post_create_search_by_sql_query(sql_query: str) -> str
+    - post_create_search_by_aql_query(aql_query: str) -> str
     - check_search_is_completed_by_search_id(search_id: str, max_request_attempt: int = 5, request_delay: float | int = 1) -> bool
     - get_search_results_by_search_id(search_id: str) -> list[PostArielSearchResultItem]
     - parse_searched_events(searched_event: PostArielSearchResultItem, windows_security_events: list[dict[str, Any]]) -> None
@@ -34,15 +34,15 @@ class QRadar:
     def __init__(self, url: str, username: str, password: str) -> None:
         self.http_client: HttpClient = HttpClient(url=url, auth=(username, password))
 
-    def post_create_search_by_sql_query(self, sql_query: str) -> str | None:
-        """Create a new search based on the given SQL query.
+    def post_create_search_by_aql_query(self, aql_query: str) -> str | None:
+        """Create a new search based on the given AQL query.
 
         For more details, see [POST /ariel/searches](https://ibmsecuritydocs.github.io/qradar_api_16.0/16.0--ariel-searches-POST.html)
 
         Parameters
         ----------
-        sql_query : str
-            The SQL query to create search.
+        aql_query : str
+            The AQL query to create search.
 
         Returns
         -------
@@ -52,8 +52,8 @@ class QRadar:
 
         res: Response | None = self.http_client.request(
             method="post",
-            endpoint="api/ariel/searches",
-            params={"query_expression": sql_query},
+            endpoint="/api/ariel/searches",
+            params={"query_expression": aql_query},
         )
         if not res:
             return
@@ -87,7 +87,7 @@ class QRadar:
         is_searching: bool = False
         while not is_searching:
             res: Response | None = self.http_client.request(
-                method="get", endpoint=f"api/ariel/searches/{search_id}"
+                method="get", endpoint=f"/api/ariel/searches/{search_id}"
             )
             if not res:
                 return False
@@ -161,25 +161,37 @@ class QRadar:
                 and src_user not in wse.get("excluded_src_users", [])
                 and dst_user not in wse.get("excluded_dst_users", [])
                 and group_name not in wse.get("excluded_groups", [])
+                and (
+                    not wse.get("included_src_users", [])
+                    or src_user in wse.get("included_src_users", [])
+                )
+                and (
+                    not wse.get("included_dst_users", [])
+                    or dst_user in wse.get("included_dst_users", [])
+                )
+                and (
+                    not wse.get("included_groups", [])
+                    or group_name in wse.get("included_groups", [])
+                )
             ),
             {},
         )
-        if matched_searched_event:
-            # update the event_text with the came fields from the searched event
-            matched_searched_event_text: str = matched_searched_event["event_text"]
-            matched_searched_event_text = matched_searched_event_text.format(
-                src_user=src_user, dst_user=dst_user, group_name=group_name
-            )
+        if not matched_searched_event:
+            return
 
-            # if the matched_searched_event_text is not in the events list
-            # add the matched_searched_event_text to the matched_searched_event events list
-            matched_searched_event_events: set[str] = set(
-                matched_searched_event.get("events", [])
-            )
-            matched_searched_event_events.add(matched_searched_event_text)
-            matched_searched_event["events"] = list(matched_searched_event_events)
-            # update the event_log with the last searched event log
-            matched_searched_event["event_log"] = event_log
+        # update the event_text with the came fields from the searched event
+        matched_searched_event_text: str = matched_searched_event["event_text"]
+        matched_searched_event_text = matched_searched_event_text.format(**locals())
+
+        # if the matched_searched_event_text is not in the events list
+        # add the matched_searched_event_text to the matched_searched_event events list
+        matched_searched_event_events: set[str] = set(
+            matched_searched_event.get("events", [])
+        )
+        matched_searched_event_events.add(matched_searched_event_text)
+        matched_searched_event["events"] = list(matched_searched_event_events)
+        # update the event_log with the searched event log
+        matched_searched_event["event_log"] = event_log
 
     @staticmethod
     def is_field_value_empty(field: Any) -> str:
@@ -196,7 +208,7 @@ class QRadar:
             The value of field if it is not empty, else "( not exist )".
         """
 
-        is_valid: bool = field in ("", " ", "N/A", "n/a", "-", " - ", None, "None")
+        is_valid: bool = field in ("", " ", "N/A", "n/a", "-", " - ", "None", None)
         is_str = isinstance(field, str)
 
-        return "( not exist )" if is_valid and not is_str else field
+        return "( not exists )" if is_valid and not is_str else field

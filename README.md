@@ -50,3 +50,7 @@ $ docker run --env-file .env qradar-wse-automation
 **Redmine Issue Creation Result**
 
 ![Redmine Windows Security Event Issue](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/assets/redmine_result.png)
+
+**Sonar Report**
+
+![Sonar Report](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/assets/sonar_report.png)

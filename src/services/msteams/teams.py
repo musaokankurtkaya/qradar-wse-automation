@@ -25,7 +25,7 @@ class MsTeams:
         cls,
         msg: str,
         title: str = TEAMS_WORKFLOW_CONFIG["title"],
-        send_on_prod: bool = True,
+        send_on_dev: bool = False,
     ) -> None:
         """Send a message to Microsoft Teams with the given message and title using the workflow URL.
 
@@ -35,11 +35,11 @@ class MsTeams:
             Message to send.
         title : str, optional
             Title of the message, by default TEAMS_WORKFLOW_CONFIG["title"]
-        send_on_prod : bool, optional
-            Flag to send the message on production, by default True.
+        send_on_dev : bool, optional
+            Flag to send the message on development, by default False.
         """
 
-        if not IS_PROD and not send_on_prod:
+        if not IS_PROD and not send_on_dev:
             return
 
         if not cls.workflow_url:
