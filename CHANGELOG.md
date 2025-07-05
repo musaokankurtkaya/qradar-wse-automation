@@ -2,7 +2,7 @@
 
 ### Added
 
-- For each event in [windows_security_events.json](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/src/data/windows_security_events.json) file, included_src_users, included_dst_users or included_groups parameters can be added to filter for only specific users or groups. If these parameters are not provided, all users and groups will be included and will check within excluded_src_users, excluded_dst_users and excluded_groups parameters. This change was made in the ![QRadar.parse_searched_events](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/src/services/qradar/qradar.py#L130) function.
+- For each event in [windows_security_events.json](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/src/data/windows_security_events.json) file, included_src_users, included_dst_users or included_groups parameters can be added to filter for only specific users or groups. If these parameters are not provided, all users and groups will be included and will check within excluded_src_users, excluded_dst_users and excluded_groups parameters. This change was made in the [QRadar.parse_searched_events](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/src/services/qradar/qradar.py#L130) function.
 - Sonar report has been added to the repository. You can check the report [here](https://github.com/musaokankurtkaya/qradar-wse-automation/blob/main/assets).
 
 ### Fixed
