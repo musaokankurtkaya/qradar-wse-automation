@@ -1,0 +1,5 @@
+python-json-logger
+python-redmine
+python-dotenv
+requests
+Jinja2
