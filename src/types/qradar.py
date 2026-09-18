@@ -7,9 +7,14 @@ class QRadarConfig(TypedDict):
     QRADAR_URL: str
     QRADAR_USERNAME: str
     QRADAR_PASSWORD: str
-    QRADAR_AQL_SEARCH_QUERY: str
-    QRADAR_QUERY_INTERVAL: NotRequired[str]
-    QRADAR_QUERY_LIMIT: NotRequired[str]
+
+    QRADAR_SEARCH_QUERY: str
+    QRADAR_SEARCH_QUERY_INTERVAL: str
+    QRADAR_MAX_SEARCH_QUERY_INTERVAL: NotRequired[str]
+    QRADAR_SEARCH_QUERY_LIMIT: NotRequired[str]
+
+    QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS: NotRequired[str]
+    QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_DELAY: NotRequired[str]
 
 
 class PostArielSearchResponse(TypedDict, total=False):

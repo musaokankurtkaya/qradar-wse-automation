@@ -43,7 +43,7 @@ pip install -r requirements.txt
 
 Rename `.env.example` to `.env` and set the necessary keys:
 
-- **QRadar settings**: Set `QRADAR_URL`, `QRADAR_USERNAME`, `QRADAR_PASSWORD` and `QRADAR_AQL_SEARCH_QUERY` to access and search on the QRadar API. The other fields are optional.
+- **QRadar settings**: Set `QRADAR_URL`, `QRADAR_USERNAME`, `QRADAR_PASSWORD`, `QRADAR_SEARCH_QUERY` and `QRADAR_SEARCH_QUERY_INTERVAL` to access and search on the QRadar API. The other fields are optional.
 
 - **SMTP settings**: Set `SMTP_SERVER`, `SMTP_PORT`, `SMTP_FROM_EMAIL`, `SMTP_FROM_EMAIL_APP_PASSWORD` and `SMTP_TO_EMAILS` to send emails via SMTP. The other fields are optional.
 

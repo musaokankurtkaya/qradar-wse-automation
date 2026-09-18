@@ -4,7 +4,7 @@ from .qradar import (
     PostArielSearchResultsResponse,
     QRadarConfig,
 )
-from .smtp import SMTP_Config
+from .smtp import SMTPConfig
 from .windows_security_event import (
     ParsedWindowsSecurityEvent,
     WindowsSecurityEvent,
@@ -18,7 +18,7 @@ __all__ = [
     "PostArielSearchResultItem",
     "PostArielSearchResultsResponse",
     "QRadarConfig",
-    "SMTP_Config",
+    "SMTPConfig",
     "WindowsSecurityEvent",
     "WindowsSecurityEventFilterOptions",
     "WindowsSecurityEventFilters",

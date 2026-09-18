@@ -5,7 +5,7 @@ from typing import Any
 
 from dotenv import dotenv_values, set_key
 
-from src.types import QRadarConfig, SMTP_Config, WindowsSecurityEvent
+from src.types import QRadarConfig, SMTPConfig, WindowsSecurityEvent
 
 ROOT_FOLDER_PATH: Path = Path(__file__).parent.parent.parent
 
@@ -65,26 +65,28 @@ def load_qradar_conf(conf: dict[str, str | None]) -> QRadarConfig:
     Raises
     ------
     ValueError
-        - If QRADAR_URL, QRADAR_USERNAME, QRADAR_PASSWORD, QRADAR_AQL_SEARCH_QUERY not found in .env file.
+        - If QRADAR_URL, QRADAR_USERNAME, QRADAR_PASSWORD, QRADAR_SEARCH_QUERY, QRADAR_SEARCH_QUERY_INTERVAL not found in .env file.
     """
 
     required_keys: list[str] = [
         "QRADAR_URL",
         "QRADAR_USERNAME",
         "QRADAR_PASSWORD",
-        "QRADAR_AQL_SEARCH_QUERY",
+        "QRADAR_SEARCH_QUERY",
+        "QRADAR_SEARCH_QUERY_INTERVAL",
     ]
     for key in required_keys:
-        if conf.get(key) is None:
+        if not conf.get(key):
             raise ValueError(f"{key} not set in .env file")
 
     qradar_conf: QRadarConfig = {
         k: v for k, v in conf.items() if k.startswith("QRADAR_")
-    }  # type: ignore
+    }  # pyright: ignore[reportAssignmentType]
+
     return qradar_conf
 
 
-def load_smtp_conf(conf: dict[str, str | None]) -> SMTP_Config:
+def load_smtp_conf(conf: dict[str, str | None]) -> SMTPConfig:
     """Load SMTP configuration with the given config parameter.
 
     Parameters
@@ -94,7 +96,7 @@ def load_smtp_conf(conf: dict[str, str | None]) -> SMTP_Config:
 
     Returns
     -------
-    SMTP_Config
+    SMTPConfig
         SMTP configuration settings, if all the expected parameters are found. Otherwise, raises ValueError.
 
     Raises
@@ -111,10 +113,12 @@ def load_smtp_conf(conf: dict[str, str | None]) -> SMTP_Config:
         "SMTP_TO_EMAILS",
     ]
     for key in required_keys:
-        if conf.get(key) is None:
+        if not conf.get(key):
             raise ValueError(f"{key} not set in .env file")
 
-    smtp_conf: SMTP_Config = {k: v for k, v in conf.items() if k.startswith("SMTP_")}  # type: ignore
+    smtp_conf: SMTPConfig = {
+        k: v for k, v in conf.items() if k.startswith("SMTP_")
+    }  # pyright: ignore[reportAssignmentType]
     return smtp_conf
 
 
@@ -129,7 +133,7 @@ def load_json_file(f_name: str) -> Any:
     Returns
     -------
     Any
-        The parsed JSON content.
+        The content of the JSON file, if the file exists and is not empty. Otherwise, raises FileNotFoundError, ValueError, or JSONDecodeError.
 
     Raises
     ------

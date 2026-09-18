@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 
-class SMTP_Config(TypedDict):
+class SMTPConfig(TypedDict):
     """SMTP config type"""
 
     SMTP_HOST: str

@@ -17,7 +17,9 @@ class MsTeams:
     """
 
     workflow_url: str | None = TEAMS_WORKFLOW_CONFIG["url"]
-    http_client: HttpClient = HttpClient(url=workflow_url, verify=True)  # pyright: ignore[reportArgumentType]
+    http_client: HttpClient = HttpClient(
+        url=workflow_url, verify=True
+    )  # pyright: ignore[reportArgumentType]
 
     @classmethod
     def send_message(

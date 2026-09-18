@@ -14,7 +14,7 @@ from ..http_client import HttpClient, Response
 class QRadar:
     """QRadar class to interact with IBM QRadar's API.
 
-    For more details, see [IBM QRadar API Documentation](https://ibmsecuritydocs.github.io/qradar_api_16.0)
+    For more details, see [IBM QRadar REST API](https://ibmsecuritydocs.github.io/qradar_api_16.0)
 
     Instance Attributes
     -------------------
@@ -25,15 +25,15 @@ class QRadar:
     def __init__(self, url: str, username: str, password: str) -> None:
         self.http_client: HttpClient = HttpClient(url=url, auth=(username, password))
 
-    def post_create_search_id_by_aql_query(self, aql_query: str) -> str:
-        """Create a new search id based on the given AQL query.
+    def post_create_search_id_by_search_query(self, search_query: str) -> str:
+        """Create a new search id based on the given search query.
 
         For more details, see [POST /ariel/searches](https://ibmsecuritydocs.github.io/qradar_api_16.0/16.0--ariel-searches-POST.html)
 
         Parameters
         ----------
-        aql_query : str
-            The AQL query to create search id.
+        search_query : str
+            The search query to create search id.
 
         Returns
         -------
@@ -44,7 +44,7 @@ class QRadar:
         res: Response | None = self.http_client.request(
             method="post",
             endpoint="/api/ariel/searches",
-            params={"query_expression": aql_query},
+            params={"query_expression": search_query},
         )
         if res is None:
             return "-"
@@ -101,7 +101,7 @@ class QRadar:
     def get_search_results_by_search_id(
         self, search_id: str
     ) -> list[PostArielSearchResultItem]:
-        """Get the searched results by search_id.
+        """Get the search results by search_id.
 
         For more details, see [GET /ariel/searches/{search_id}/results](https://ibmsecuritydocs.github.io/qradar_api_16.0/16.0--ariel-searches-search_id-results-GET.html)
 
@@ -113,7 +113,7 @@ class QRadar:
         Returns
         -------
         list[PostArielSearchResultItem]
-            The searched results.
+            The search results.
         """
 
         res: Response | None = self.http_client.request(
@@ -127,15 +127,15 @@ class QRadar:
         return events
 
     @staticmethod
-    def parse_searched_results(
-        searched_results: list[PostArielSearchResultItem],
+    def parse_search_results(
+        search_results: list[PostArielSearchResultItem],
         windows_security_events: list[WindowsSecurityEvent],
     ) -> list[ParsedWindowsSecurityEvent]:
         """Parse the search results to match with the windows security events.
 
         Parameters
         ----------
-        searched_results : list[PostArielSearchResultItem]
+        search_results : list[PostArielSearchResultItem]
             The search results to parse.
         windows_security_events : list[WindowsSecurityEvent]
             The windows security events list to match with the search results.
@@ -192,8 +192,8 @@ class QRadar:
 
             return True
 
-        for s_result in searched_results:
-            # get windows security event expected fields from the searched result
+        for s_result in search_results:
+            # get windows security event expected fields from the s_result
             event_id: str | None = s_result.get("event_id")
             src_user: str = s_result.get("src_user") or "-"
             dst_user: str = s_result.get("dst_user") or "-"

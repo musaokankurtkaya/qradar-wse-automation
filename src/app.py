@@ -12,15 +12,16 @@ from src.types import (
     ParsedWindowsSecurityEvent,
     PostArielSearchResultItem,
     QRadarConfig,
-    SMTP_Config,
+    SMTPConfig,
     WindowsSecurityEvent,
 )
 from src.utils.constants import (
     CONFIG,
-    DEFAULT_QUERY_INTERVAL_IN_MINUTES,
-    MAX_QUERY_INTERVAL_IN_MINUTES,
-    SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS_IN_MINUTES,
-    SEARCH_QUERY_COMPLETED_REQUEST_DELAY_IN_SECONDS,
+    DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL,
+    DEFAULT_QRADAR_SEARCH_QUERY_LIMIT,
+    QRADAR_MAX_SEARCH_QUERY_INTERVAL,
+    QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS,
+    QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_DELAY,
 )
 from src.utils.logger import datetime, log_message
 
@@ -41,19 +42,30 @@ def main() -> None:
         password=qradar_config["QRADAR_PASSWORD"],
     )
 
-    # get query_interval from qradar_config to use in the AQL query
-    query_interval_key: str = "QRADAR_QUERY_INTERVAL"
-    query_interval: int = int(
-        qradar_config.get(query_interval_key) or DEFAULT_QUERY_INTERVAL_IN_MINUTES
+    search_query: str = qradar_config["QRADAR_SEARCH_QUERY"]
+
+    # get all wse ids from the wse_json_data and join them with a comma to use in the search_query
+    wse_ids: str = ", ".join([wse["id"] for wse in wse_json_data])
+    # get search_query_interval from qradar_config to use in the search_query
+    search_query_interval_key: str = "QRADAR_SEARCH_QUERY_INTERVAL"
+    search_query_interval: int = int(
+        qradar_config.get(search_query_interval_key)
+        or DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL
+    )
+    # get search_query_limit from qradar_config to use in the search_query
+    search_query_limit_key: str = "QRADAR_SEARCH_QUERY_LIMIT"
+    search_query_limit: int = int(
+        qradar_config.get(search_query_limit_key) or DEFAULT_QRADAR_SEARCH_QUERY_LIMIT
     )
 
-    # get all wse ids from the wse_json_data and join them with a comma to use in the AQL query
-    wse_ids: str = ", ".join([wse["id"] for wse in wse_json_data])
-    aql_query: str = qradar_config["QRADAR_AQL_SEARCH_QUERY"]
-    aql_query = aql_query.replace("{wse_ids}", wse_ids)
+    search_query = search_query.format(
+        wse_ids=wse_ids, interval=search_query_interval, limit=search_query_limit
+    )
 
-    # create post search to get search id by aql query
-    search_id: str = qradar.post_create_search_id_by_aql_query(aql_query=aql_query)
+    # create post search to get search id by search_query
+    search_id: str = qradar.post_create_search_id_by_search_query(
+        search_query=search_query
+    )
     if search_id == "-":
         log_message(mode="error", msg="search id not found")
         return
@@ -61,54 +73,57 @@ def main() -> None:
     # check if the search id is completed to get the results
     is_search_completed: bool = qradar.check_search_is_completed_by_search_id(
         search_id=search_id,
-        max_request_attempts=SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS_IN_MINUTES,
-        request_delay_seconds=SEARCH_QUERY_COMPLETED_REQUEST_DELAY_IN_SECONDS,
+        max_request_attempts=QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS,
+        request_delay_seconds=QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_DELAY,
     )
     if not is_search_completed:
         log_message(
             mode="error",
-            msg=f"search is not completed after {SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS_IN_MINUTES} attempts with {SEARCH_QUERY_COMPLETED_REQUEST_DELAY_IN_SECONDS} seconds delay between each attempt",
+            msg=f"search is not completed after {QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_ATTEMPTS} attempts with {QRADAR_SEARCH_QUERY_COMPLETED_REQUEST_DELAY} seconds delay between each attempt",
         )
         return
 
-    # get the searched results by search id to parse
-    searched_results: list[PostArielSearchResultItem] = (
+    # get the search results by search id to parse
+    search_results: list[PostArielSearchResultItem] = (
         qradar.get_search_results_by_search_id(search_id=search_id)
     )
-    if not searched_results:
-        # no any search results found, add 15 minutes to the query_interval to search in the next run
-        query_interval += DEFAULT_QUERY_INTERVAL_IN_MINUTES
-        # check if the query_interval is less than 1 day, if not, set it to default_interval
-        if query_interval < MAX_QUERY_INTERVAL_IN_MINUTES:
-            update_config_key(key=query_interval_key, value=str(query_interval))
+    if not search_results:
+        # no any search results found, add 15 minutes to the search_query_interval to search in the next run
+        search_query_interval += DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL
+        # check if the search_query_interval is less than QRADAR_MAX_SEARCH_QUERY_INTERVAL, if not, set it to DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL
+        if search_query_interval < QRADAR_MAX_SEARCH_QUERY_INTERVAL:
+            update_config_key(
+                key=search_query_interval_key, value=str(search_query_interval)
+            )
             log_message(
                 mode="warning",
-                msg=f"no any search results found in the last {query_interval - DEFAULT_QUERY_INTERVAL_IN_MINUTES} minutes",
+                msg=f"no any search results found in the last {search_query_interval - DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL} minutes",
             )
         else:
             update_config_key(
-                key=query_interval_key, value=str(DEFAULT_QUERY_INTERVAL_IN_MINUTES)
+                key=search_query_interval_key,
+                value=str(DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL),
             )
             log_message(
                 mode="warning",
-                msg=f"no any search results found for 1 day, query_interval is set to {DEFAULT_QUERY_INTERVAL_IN_MINUTES} minutes",
+                msg=f"no any search results found for {QRADAR_MAX_SEARCH_QUERY_INTERVAL} minutes, query_interval is set to {DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL} minutes",
             )
         return
 
-    # search results found, reset the QRADAR_QUERY_INTERVAL to the DEFAULT_QUERY_INTERVAL_IN_MINUTES
+    # search results found, reset the search_query_interval to the DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL
     update_config_key(
-        key=query_interval_key, value=str(DEFAULT_QUERY_INTERVAL_IN_MINUTES)
+        key=search_query_interval_key, value=str(DEFAULT_QRADAR_SEARCH_QUERY_INTERVAL)
     )
 
     # get the parsed wse after matching with the wse_json_data
-    parsed_wse: list[ParsedWindowsSecurityEvent] = qradar.parse_searched_results(
-        searched_results=searched_results, windows_security_events=wse_json_data
+    parsed_wse: list[ParsedWindowsSecurityEvent] = qradar.parse_search_results(
+        search_results=search_results, windows_security_events=wse_json_data
     )
     if not parsed_wse:
         return
 
     # load smtp config from CONFIG to use in the smtp instance
-    smtp_config: SMTP_Config = load_smtp_conf(conf=CONFIG)
+    smtp_config: SMTPConfig = load_smtp_conf(conf=CONFIG)
 
     # create smtp instance to send parsed wse via email
     smtp: SMTP = SMTP(
